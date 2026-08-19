@@ -89,7 +89,8 @@ class InputManager:
                 if dir_val in ('left', 'right', 'middle'):
                     self.input_state['Direction'] = dir_val
                     updated = True
-                if mov_val in ('up', 'down', 'middle'):
+                # Remove/ignore 'up' (jump). Only accept down (crouch) or middle.
+                if mov_val in ('down', 'middle'):
                     self.input_state['Movement'] = mov_val
                     updated = True
                 if updated:
