@@ -1,10 +1,10 @@
 """
-World generation and management - segments, obstacles, coins.
+World generation and management - segments, obstacles, coins (coins removed).
 """
 import random
 from ursina import Entity, color, Vec3, destroy
 from game_config import (SEGMENT_LENGTH, SEGMENT_WIDTH, OBSTACLE_CHANCE, 
-                         COIN_CHANCE, OBSTACLE_SIZE, COIN_SIZE, LANE_X)
+                         OBSTACLE_SIZE, LANE_X)
 
 
 class Segment:
@@ -19,11 +19,12 @@ class Segment:
             position=(0, -0.1, self.z)
         )
         self.obstacles = []
+        # coins removed: keep coin list empty for compatibility
         self.coins = []
         self.populate()
 
     def populate(self):
-        """Randomly place obstacles and coins in this segment."""
+        """Randomly place obstacles in this segment. Coins removed."""
         for lane_index, x in enumerate(LANE_X):
             if random.random() < OBSTACLE_CHANCE:
                 z_off = random.uniform(
@@ -37,27 +38,15 @@ class Segment:
                     position=(x, OBSTACLE_SIZE[1]/2, z_off)
                 )
                 self.obstacles.append(obs)
-            elif random.random() < COIN_CHANCE:
-                z_off = random.uniform(
-                    self.z - SEGMENT_LENGTH/2 + 2,
-                    self.z + SEGMENT_LENGTH/2 - 2
-                )
-                coin = Entity(
-                    model='sphere',
-                    scale=COIN_SIZE,
-                    color=color.yellow,
-                    position=(x, 0.4, z_off)
-                )
-                self.coins.append(coin)
 
     def update(self, dt, speed):
-        """Move segment and all contained objects."""
+        """Move segment and all contained objects forward (toward camera)."""
+        # world moves forward: decrease Z by speed*dt (segments move toward the player)
         self.z -= speed * dt
         self.entity.z = self.z
         for o in self.obstacles:
             o.z -= speed * dt
-        for c in self.coins:
-            c.z -= speed * dt
+        # coins removed
 
     def destroy(self):
         """Clean up all entities in this segment."""
@@ -70,11 +59,7 @@ class Segment:
                 destroy(o)
             except Exception:
                 pass
-        for c in self.coins:
-            try:
-                destroy(c)
-            except Exception:
-                pass
+        # coins removed
 
 
 class WorldManager:
@@ -111,11 +96,8 @@ class WorldManager:
         return obstacles
 
     def get_all_coins(self):
-        """Return all active coins (for collection)."""
-        coins = []
-        for seg in self.segments:
-            coins.extend(seg.coins)
-        return coins
+        """Return all active coins (for collection) - coins removed, returns empty."""
+        return []
 
     def cleanup(self):
         """Destroy all segments (on shutdown)."""
